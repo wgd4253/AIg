@@ -11,62 +11,62 @@ import com.exem.exemone2.dto.app.SqlDetail;
 import com.exem.exemone2.dto.app.SqlSummary;
 import com.exem.exemone2.dto.common.MetricPoint;
 import com.exem.exemone2.dto.common.TimeRange;
+import com.exem.exemone2.repository.clickhouse.AppChRepository;
+import com.exem.exemone2.repository.postgres.AppPgRepository;
+import com.exem.exemone2.repository.redis.AppRedisRepository;
+
+import lombok.RequiredArgsConstructor;
 
 @Service
+@RequiredArgsConstructor
 public class AppGroupService {
 
+    private final AppPgRepository pgRepo;
+    private final AppChRepository chRepo;
+    private final AppRedisRepository redisRepo;
+
     public List<AppGroup> getGroups() {
-        // TODO: PostgreSQL에서 WAS 그룹 목록 조회
-        return List.of();
+        return pgRepo.findAllGroups();
     }
 
     public List<AppInstance> getInstances(String groupId) {
-        // TODO: PostgreSQL에서 그룹 내 인스턴스 목록 조회
-        return List.of();
+        return pgRepo.findInstancesByGroupId(groupId);
     }
 
     public AppInstance getInstance(String instanceId) {
-        // TODO: PostgreSQL에서 인스턴스 상세 조회
-        return null;
+        return pgRepo.findInstanceById(instanceId);
     }
 
     public AppInstanceStatus getInstanceStatus(String instanceId) {
-        // TODO: Redis에서 실시간 상태 조회
-        return null;
+        return redisRepo.findInstanceStatus(instanceId);
     }
 
     public List<MetricPoint> getTpsMetrics(String instanceId, TimeRange range) {
-        // TODO: ClickHouse에서 TPS 메트릭 조회
-        return List.of();
+        return chRepo.findTpsMetrics(instanceId, range);
     }
 
     public List<MetricPoint> getResponseTimeMetrics(String instanceId, TimeRange range) {
-        // TODO: ClickHouse에서 응답시간 메트릭 조회
-        return List.of();
+        return chRepo.findResponseTimeMetrics(instanceId, range);
     }
 
     public List<MetricPoint> getErrorRateMetrics(String instanceId, TimeRange range) {
-        // TODO: ClickHouse에서 에러율 메트릭 조회
-        return List.of();
+        return chRepo.findErrorRateMetrics(instanceId, range);
     }
 
     public List<MetricPoint> getActiveThreadMetrics(String instanceId, TimeRange range) {
-        // TODO: ClickHouse에서 액티브 스레드 메트릭 조회
-        return List.of();
+        return chRepo.findActiveThreadMetrics(instanceId, range);
     }
 
     public List<MetricPoint> getJvmMetrics(String instanceId, TimeRange range) {
-        // TODO: ClickHouse에서 JVM 메트릭 조회
-        return List.of();
+        return chRepo.findJvmMetrics(instanceId, range);
     }
 
     public List<SqlSummary> getTopSql(String instanceId, TimeRange range, int top) {
-        // TODO: ClickHouse에서 Top N SQL 조회
-        return List.of();
+        return chRepo.findTopSql(instanceId, range, top);
     }
 
     public SqlDetail getSqlDetail(String sqlHash) {
-        // TODO: PostgreSQL/ClickHouse에서 SQL 상세 조회
+        // SQL text lookup would require a separate ClickHouse query
         return null;
     }
 }

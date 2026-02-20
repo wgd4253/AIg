@@ -8,23 +8,23 @@ spring:
   # 자체 PostgreSQL (읽기/쓰기) - 사용자, 설정, 대시보드
   datasource:
     exemone2:
-      url: jdbc:postgresql://localhost:5434/exemone2
+      jdbc-url: jdbc:postgresql://localhost:5434/exemone2
       username: exemone2
       password: exemone2
       driver-class-name: org.postgresql.Driver
 
     # 기존 ExemOne PostgreSQL (읽기 전용) - 메타데이터
     exemone-pg:
-      url: jdbc:postgresql://localhost:5433/exemone
+      jdbc-url: jdbc:postgresql://localhost:5433/postgres
       username: postgres
-      password: postgres
+      password: onepass
       driver-class-name: org.postgresql.Driver
 
     # 기존 ExemOne ClickHouse (읽기 전용) - 시계열 메트릭
     clickhouse:
-      url: jdbc:clickhouse://localhost:8123/exemone
+      jdbc-url: jdbc:clickhouse://localhost:8123/default
       username: exemone
-      password: exemone
+      password: onepass
       driver-class-name: com.clickhouse.jdbc.ClickHouseDriver
 
   # 기존 ExemOne Redis (읽기 전용) - 에이전트 상태
@@ -35,7 +35,7 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: none
     show-sql: false
     properties:
       hibernate:

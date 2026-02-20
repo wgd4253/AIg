@@ -7,30 +7,33 @@ import org.springframework.stereotype.Service;
 import com.exem.exemone2.dto.app.TransactionDetail;
 import com.exem.exemone2.dto.app.TransactionSummary;
 import com.exem.exemone2.dto.common.TimeRange;
+import com.exem.exemone2.repository.clickhouse.AppChRepository;
+
+import lombok.RequiredArgsConstructor;
 
 @Service
+@RequiredArgsConstructor
 public class AppTransactionService {
+
+    private final AppChRepository chRepo;
 
     public List<TransactionSummary> getTransactions(String instanceId, TimeRange range,
                                                      int page, int size) {
-        // TODO: ClickHouse에서 트랜잭션 목록 조회
-        return List.of();
+        int offset = page * size;
+        return chRepo.findTransactions(instanceId, range, offset, size);
     }
 
     public TransactionDetail getTransaction(String txnId) {
-        // TODO: ClickHouse에서 트랜잭션 상세 조회
-        return null;
+        return chRepo.findTransactionById(txnId);
     }
 
     public List<TransactionSummary> getTopSlowTransactions(String instanceId, TimeRange range,
                                                             int top) {
-        // TODO: ClickHouse에서 느린 트랜잭션 Top N 조회
-        return List.of();
+        return chRepo.findTopSlowTransactions(instanceId, range, top);
     }
 
     public List<TransactionSummary> getTopErrorTransactions(String instanceId, TimeRange range,
                                                              int top) {
-        // TODO: ClickHouse에서 에러 트랜잭션 Top N 조회
-        return List.of();
+        return chRepo.findTopErrorTransactions(instanceId, range, top);
     }
 }

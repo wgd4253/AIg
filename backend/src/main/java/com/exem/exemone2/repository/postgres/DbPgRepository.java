@@ -53,4 +53,17 @@ public class DbPgRepository {
                 instanceId);
         return results.isEmpty() ? null : results.get(0);
     }
+
+    public String findHostIdByInstanceId(String instanceId) {
+        List<String> results = jdbc.query("""
+                SELECT h.host_id
+                FROM xm_instance i
+                JOIN xm_infra_host h ON h.hostname = i.hostname
+                WHERE i.instance_id = ? AND i.deleted = false AND h.deleted = false
+                LIMIT 1
+                """,
+                (rs, rowNum) -> rs.getString("host_id"),
+                instanceId);
+        return results.isEmpty() ? null : results.get(0);
+    }
 }

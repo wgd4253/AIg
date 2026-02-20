@@ -3,6 +3,8 @@ package com.exem.exemone2.repository.clickhouse;
 import java.util.List;
 import java.util.Map;
 
+import com.exem.exemone2.dto.infra.ProcessInfo;
+
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -125,6 +127,24 @@ public class InfraHostChRepository {
                 (rs, rowNum) -> rs.getDouble("cpu_usage"),
                 hostId);
         return results.isEmpty() ? null : results.get(0);
+    }
+
+    public List<ProcessInfo> findProcesses(String hostId, int top) {
+        return jdbc.query("""
+                SELECT pid, user_name, cpu, rss, process_name
+                FROM infra_process
+                WHERE host_id = ?
+                ORDER BY collect_time DESC, cpu DESC
+                LIMIT ?
+                """,
+                (rs, rowNum) -> ProcessInfo.builder()
+                        .pid(rs.getLong("pid"))
+                        .name(rs.getString("process_name"))
+                        .user(rs.getString("user_name"))
+                        .cpuUsage(rs.getDouble("cpu"))
+                        .memoryBytes(rs.getLong("rss"))
+                        .build(),
+                hostId, top);
     }
 
     public Double getLatestMemoryUsage(String hostId) {

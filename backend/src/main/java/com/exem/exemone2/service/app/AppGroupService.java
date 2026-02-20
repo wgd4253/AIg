@@ -66,7 +66,6 @@ public class AppGroupService {
     }
 
     public SqlDetail getSqlDetail(String sqlHash) {
-        // SQL text lookup would require a separate ClickHouse query
-        return null;
+        return chRepo.findSqlDetail(sqlHash);
     }
 }

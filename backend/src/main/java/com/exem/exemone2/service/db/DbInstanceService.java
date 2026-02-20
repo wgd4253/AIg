@@ -43,7 +43,8 @@ public class DbInstanceService {
     }
 
     public List<MetricPoint> getCpuMetrics(String instanceId, TimeRange range) {
-        return chRepo.findCpuMetrics(instanceId, range);
+        String hostId = pgRepo.findHostIdByInstanceId(instanceId);
+        return chRepo.findCpuMetricsByHostId(hostId, range);
     }
 
     public List<MetricPoint> getMemoryMetrics(String instanceId, TimeRange range) {

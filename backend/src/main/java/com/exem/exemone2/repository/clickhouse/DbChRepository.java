@@ -10,7 +10,9 @@ import org.springframework.stereotype.Repository;
 import com.exem.exemone2.dto.common.MetricPoint;
 import com.exem.exemone2.dto.common.TimeRange;
 import com.exem.exemone2.dto.db.DbSession;
+import com.exem.exemone2.dto.db.DbSqlDetail;
 import com.exem.exemone2.dto.db.DbSqlSummary;
+import com.exem.exemone2.dto.db.LockTreeNode;
 
 @Repository
 public class DbChRepository {
@@ -62,10 +64,31 @@ public class DbChRepository {
                 range.toForCh());
     }
 
-    public List<MetricPoint> findCpuMetrics(String instanceId, TimeRange range) {
-        // DB CPU: query infra_host_stat via host_id from PG xm_instance
-        // Simplified: return empty - requires cross-datasource join
-        return List.of();
+    public List<MetricPoint> findCpuMetricsByHostId(String hostId, TimeRange range) {
+        if (hostId == null || hostId.isBlank()) {
+            return List.of();
+        }
+        return jdbc.query("""
+                SELECT toStartOfInterval(collect_time, INTERVAL 1 MINUTE) AS ts,
+                       avg(`user` + sys + io_wait + irq + soft_irq + steal) AS cpu_usage,
+                       avg(`user`) AS cpu_user,
+                       avg(sys) AS cpu_sys,
+                       avg(io_wait) AS cpu_iowait
+                FROM infra_host_stat
+                WHERE host_id = ?
+                  AND collect_time BETWEEN ? AND ?
+                GROUP BY ts
+                ORDER BY ts
+                """,
+                (rs, rowNum) -> new MetricPoint(
+                        rs.getTimestamp("ts").toInstant(),
+                        Map.of("cpuUsage", rs.getDouble("cpu_usage"),
+                               "cpuUser", rs.getDouble("cpu_user"),
+                               "cpuSys", rs.getDouble("cpu_sys"),
+                               "cpuIowait", rs.getDouble("cpu_iowait"))),
+                hostId,
+                range.fromForCh(),
+                range.toForCh());
     }
 
     public List<MetricPoint> findMemoryMetrics(String instanceId, TimeRange range) {
@@ -175,6 +198,62 @@ public class DbChRepository {
                                 ? rs.getLong("elapsed_time") : null)
                         .build(),
                 instanceId, sessionId);
+        return results.isEmpty() ? null : results.get(0);
+    }
+
+    public List<LockTreeNode> findLockTree(String instanceId) {
+        return jdbc.query("""
+                SELECT waiter_pid, waiter_user, waiter_query,
+                       holder_pid, holder_user, holder_query,
+                       lock_type, lock_mode
+                FROM postgresql_locktree
+                WHERE instance_id = ?
+                ORDER BY collect_time DESC
+                LIMIT 200
+                """,
+                (rs, rowNum) -> LockTreeNode.builder()
+                        .sessionId(String.valueOf(rs.getInt("waiter_pid")))
+                        .username(rs.getString("waiter_user"))
+                        .sqlText(rs.getString("waiter_query"))
+                        .lockType(rs.getString("lock_type"))
+                        .lockMode(rs.getString("lock_mode"))
+                        .waiters(List.of())
+                        .build(),
+                instanceId);
+    }
+
+    public DbSqlDetail findSqlDetail(String sqlId) {
+        List<DbSqlDetail> results = jdbc.query("""
+                SELECT t.sql_id, t.sql_fulltext,
+                       e.executions, e.elapsed_time, e.cpu_time,
+                       e.buffer_gets, e.disk_reads, e.rows_processed
+                FROM postgresql_sql_text t
+                LEFT JOIN (
+                    SELECT sql_id,
+                           sum(executions) AS executions,
+                           sum(elapsed_time) AS elapsed_time,
+                           sum(cpu_time) AS cpu_time,
+                           sum(buffer_gets) AS buffer_gets,
+                           sum(disk_reads) AS disk_reads,
+                           sum(rows_processed) AS rows_processed
+                    FROM postgresql_sql_elapse
+                    WHERE sql_id = ?
+                    GROUP BY sql_id
+                ) e ON t.sql_id = e.sql_id
+                WHERE t.sql_id = ?
+                LIMIT 1
+                """,
+                (rs, rowNum) -> DbSqlDetail.builder()
+                        .sqlId(rs.getString("sql_id"))
+                        .sqlText(rs.getString("sql_fulltext"))
+                        .executions(rs.getObject("executions") != null ? rs.getLong("executions") : 0L)
+                        .elapsedTime(rs.getObject("elapsed_time") != null ? rs.getLong("elapsed_time") : 0L)
+                        .cpuTime(rs.getObject("cpu_time") != null ? rs.getLong("cpu_time") : 0L)
+                        .bufferGets(rs.getObject("buffer_gets") != null ? rs.getLong("buffer_gets") : 0L)
+                        .diskReads(rs.getObject("disk_reads") != null ? rs.getLong("disk_reads") : 0L)
+                        .rowsProcessed(rs.getObject("rows_processed") != null ? rs.getLong("rows_processed") : 0L)
+                        .build(),
+                sqlId, sqlId);
         return results.isEmpty() ? null : results.get(0);
     }
 

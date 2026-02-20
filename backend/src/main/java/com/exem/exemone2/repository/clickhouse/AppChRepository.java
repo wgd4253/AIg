@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
+import com.exem.exemone2.dto.app.SqlDetail;
 import com.exem.exemone2.dto.app.SqlSummary;
 import com.exem.exemone2.dto.app.TransactionDetail;
 import com.exem.exemone2.dto.app.TransactionSummary;
@@ -223,6 +224,21 @@ public class AppChRepository {
                 range.fromForCh(),
                 range.toForCh(),
                 top);
+    }
+
+    public SqlDetail findSqlDetail(String sqlHash) {
+        List<SqlDetail> results = jdbc.query("""
+                SELECT toString(sql_hash) AS sql_hash, sql_text
+                FROM application_sql_text
+                WHERE toString(sql_hash) = ?
+                LIMIT 1
+                """,
+                (rs, rowNum) -> SqlDetail.builder()
+                        .sqlHash(rs.getString("sql_hash"))
+                        .sqlText(rs.getString("sql_text"))
+                        .build(),
+                sqlHash);
+        return results.isEmpty() ? null : results.get(0);
     }
 
     public List<SqlSummary> findTopSql(String wasId, TimeRange range, int top) {

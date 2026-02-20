@@ -23,12 +23,12 @@ public class DbSqlService {
     }
 
     public DbSqlDetail getSqlDetail(String sqlId) {
-        // SQL detail with text would require postgresql_sql_list lookup
-        return null;
+        return chRepo.findSqlDetail(sqlId);
     }
 
     public DbSqlPlan getSqlPlan(String sqlId) {
-        // Execution plan data would require postgresql_sql_plan lookup
+        // No postgresql_sql_plan table exists in ClickHouse (only oracle_sql_plan)
+        // Return null until PostgreSQL plan collection is implemented
         return null;
     }
 }

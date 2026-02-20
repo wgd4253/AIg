@@ -32,6 +32,10 @@ public class DbSessionService {
     }
 
     public List<LockTreeNode> getLockTree(String instanceId) {
-        return redisRepo.findLockTree(instanceId);
+        List<LockTreeNode> lockTree = chRepo.findLockTree(instanceId);
+        if (lockTree.isEmpty()) {
+            lockTree = redisRepo.findLockTree(instanceId);
+        }
+        return lockTree;
     }
 }

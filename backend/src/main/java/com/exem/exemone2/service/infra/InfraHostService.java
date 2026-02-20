@@ -73,7 +73,6 @@ public class InfraHostService {
     }
 
     public List<ProcessInfo> getProcesses(String hostKey, int top) {
-        // Process data is not stored in a separate table; infra_host_stat has host-level metrics
-        return List.of();
+        return chRepo.findProcesses(hostKey, top);
     }
 }

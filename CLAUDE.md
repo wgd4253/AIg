@@ -70,14 +70,27 @@ SSH 비밀번호: exemone123!{N}  /  root: Root123!{N}
 ```
 exemone2/
 ├── CLAUDE.md
+├── .gitignore
 ├── docs/
 │   ├── reference/
-│   │   └── existing_infra.md       # 기존 인프라 현황
-│   └── tech-stack.md               # 기술 스택 상세
-├── backend/                        # Spring Boot 3 (Java 21)
-│   └── (추후 생성)
-└── frontend/                       # React + TypeScript (Vite)
-    └── (추후 생성)
+│   │   └── existing_infra.md           # 기존 인프라 현황
+│   └── tech-stack.md                   # 기술 스택 상세
+├── backend/                            # Spring Boot 3 (Java 17)
+│   ├── build.gradle.kts                # Gradle Kotlin DSL
+│   ├── settings.gradle.kts
+│   ├── gradlew / gradlew.bat
+│   └── src/main/java/com/exem/exemone2/
+│       ├── ExemOne2Application.java    # 메인 엔트리포인트
+│       ├── config/
+│       │   └── DataSourceConfig.java   # 멀티 데이터소스 설정
+│       └── controller/
+│           └── HealthController.java   # 헬스체크 API
+└── frontend/                           # React 19 + TypeScript (Vite)
+    ├── package.json
+    ├── vite.config.ts
+    └── src/
+        ├── main.tsx
+        └── App.tsx
 ```
 
 ## Development Conventions

@@ -1,0 +1,42 @@
+server:
+  port: 8090
+
+spring:
+  application:
+    name: exemone2
+
+  # 자체 PostgreSQL (읽기/쓰기) - 사용자, 설정, 대시보드
+  datasource:
+    exemone2:
+      url: jdbc:postgresql://localhost:5434/exemone2
+      username: exemone2
+      password: exemone2
+      driver-class-name: org.postgresql.Driver
+
+    # 기존 ExemOne PostgreSQL (읽기 전용) - 메타데이터
+    exemone-pg:
+      url: jdbc:postgresql://localhost:5433/exemone
+      username: postgres
+      password: postgres
+      driver-class-name: org.postgresql.Driver
+
+    # 기존 ExemOne ClickHouse (읽기 전용) - 시계열 메트릭
+    clickhouse:
+      url: jdbc:clickhouse://localhost:8123/exemone
+      username: exemone
+      password: exemone
+      driver-class-name: com.clickhouse.jdbc.ClickHouseDriver
+
+  # 기존 ExemOne Redis (읽기 전용) - 에이전트 상태
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
